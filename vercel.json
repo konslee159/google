@@ -1,6 +1,10 @@
 {
   "version": 2,
-  "rewrites": [
-    { "source": "/api/login", "destination": "/api/login.js" }
+  "builds": [
+    { "src": "api/login.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/login", "dest": "/api/login.js" },
+    { "src": "/(.*)", "dest": "/public/$1" }
   ]
 }
