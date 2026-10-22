@@ -2,10 +2,6 @@
   "name": "google-login-neon",
   "version": "1.0.0",
   "description": "Google login clone with Neon DB deployed on Vercel",
-  "main": "api/login.js",
-  "scripts": {
-    "start": "node server.js"
-  },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
