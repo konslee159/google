@@ -2,5 +2,8 @@
   "version": 2,
   "rewrites": [
     { "source": "/api/login", "destination": "/api/login.js" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/public/$1" }
   ]
 }
